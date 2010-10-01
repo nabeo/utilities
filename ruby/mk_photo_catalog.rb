@@ -43,20 +43,26 @@ def copy_file(orig_file, dist_path)
   end
 end
 
-# jpegファイルの処理
-Dir.glob(TARGET_DIR + "/**/*.{jpg,JPG}") do |jpg_file|
-  jpg = EXIFR::JPEG.new(jpg_file)
-  t = jpg.exif.date_time_original
-  shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
-  dist_jpg_dir = DIST_PREFIX + "/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
-  copy_file(jpg_file, dist_jpg_dir)
-end
-
-# rawファイル
-Dir.glob(TARGET_DIR + "/**/*.{nef,NEF}") do |raw_file|
-  raw = EXIFR::TIFF.new(raw_file)
-  t = raw.date_time_original
-  shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
-  dist_raw_dir = DIST_PREFIX + "/raw/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
-  copy_file(raw_file, dist_raw_dir)
+Dir.glob(TARGET_DIR + "/**/*.{jpg,JPG,nef,NEF}") do |file|
+  file_name = File.basename(file)
+  file_ext = File.extname(file_name)
+  if file_ext == ".jpg" or file_ext == ".JPG"
+    # jpegファイルの処理
+    jpg_file = file
+    jpg = EXIFR::JPEG.new(jpg_file)
+    t = jpg.exif.date_time_original
+    shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
+    dist_jpg_dir = DIST_PREFIX + "/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
+    copy_file(jpg_file, dist_jpg_dir)
+  elsif file_ext == ".nef" or file_ext == ".NEF"
+    # rawファイルの処理
+    raw_file = file
+    raw = EXIFR::TIFF.new(raw_file)
+    t = raw.date_time_original
+    shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
+    dist_raw_dir = DIST_PREFIX + "/raw/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
+    copy_file(raw_file, dist_raw_dir)
+  else
+    print("undefined ext name : #{file_ext}\n")
+  end
 end
