@@ -10,10 +10,11 @@ DIST_PREFIX = "/data00/Picts/Photos"
 TARGET_DIR = ARGV.shift
 
 def copy_file(orig_file, dist_path)
-  orig_file_name = File.basename(orig_file)                        
+  file = File.new(orig_file)
+  orig_file_name = file.basename(orig_file)                        
   print("#{orig_file_name} ... ")
-  orig_file_ext = File.extname(orig_file_name)
-  orig_file_no_ext = File.basename(orig_file_name, orig_file_ext)
+  orig_file_ext = file.extname(orig_file_name)
+  orig_file_no_ext = file.basename(orig_file_name, orig_file_ext)
 
   # コピー先のディレクトリを作成
   FileUtils.mkdir_p(dist_path)
@@ -44,8 +45,9 @@ def copy_file(orig_file, dist_path)
 end
 
 Dir.glob(TARGET_DIR + "/**/*.{jpg,JPG,nef,NEF}") do |file|
-  file_name = File.basename(file)
-  file_ext = File.extname(file_name)
+  file = File.new(file)
+  file_name = file.basename(file)
+  file_ext = file.extname(file_name)
   if file_ext == ".jpg" or file_ext == ".JPG"
     # jpegファイルの処理
     jpg_file = file
