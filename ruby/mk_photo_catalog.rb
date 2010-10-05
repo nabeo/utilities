@@ -7,7 +7,20 @@ require "rubygems"
 require "exifr"
 
 DIST_PREFIX = "/data00/Picts/Photos"
-TARGET_DIR = ARGV.shift
+if Dir.exist?(DIST_PREFIX) == false
+  warn("I can't find #{DIST_PREFIX}. Please check `DIST_PREFIX`.")
+  exit(false)
+end
+
+target_dir = ARGV.shift
+if target_dir == nil
+  target_dir = FileUtils.pwd()
+else
+  if Dir.exist?(target_dir) == false
+    warn("I can't find #{target_dir}.")
+    exit(false)
+  end
+end
 
 def copy_file(orig_file, dist_path)
   file = File.new(orig_file)
@@ -44,7 +57,7 @@ def copy_file(orig_file, dist_path)
   end
 end
 
-Dir.glob(TARGET_DIR + "/**/*.{jpg,JPG,nef,NEF}") do |file|
+Dir.glob(target_dir + "/**/*.{jpg,JPG,nef,NEF}") do |file|
   file = File.new(file)
   file_name = file.basename(file)
   file_ext = file.extname(file_name)
@@ -52,10 +65,15 @@ Dir.glob(TARGET_DIR + "/**/*.{jpg,JPG,nef,NEF}") do |file|
     # jpegファイルの処理
     jpg_file = file
     jpg = EXIFR::JPEG.new(jpg_file)
-    t = jpg.exif.date_time_original
-    shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
-    dist_jpg_dir = DIST_PREFIX + "/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
-    copy_file(jpg_file, dist_jpg_dir)
+    if jpg.exif? == false
+      # EXIFデータがない -> コピーしない
+      warn("#{jpg_file} does not have exif data.")
+    else
+      t = jpg.exif.date_time_original
+      shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
+      dist_jpg_dir = DIST_PREFIX + "/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
+      copy_file(jpg_file, dist_jpg_dir)
+    end
   elsif file_ext == ".nef" or file_ext == ".NEF"
     # rawファイルの処理
     raw_file = file
@@ -64,7 +82,5 @@ Dir.glob(TARGET_DIR + "/**/*.{jpg,JPG,nef,NEF}") do |file|
     shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
     dist_raw_dir = DIST_PREFIX + "/raw/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
     copy_file(raw_file, dist_raw_dir)
-  else
-    print("undefined ext name : #{file_ext}\n")
   end
 end
