@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby192
-#encoding:utf-8
+# -*- coding: utf-8 -*-
 
 require "fileutils"
 
