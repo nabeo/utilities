@@ -65,22 +65,27 @@ Dir.glob(target_dir + "/**/*.{jpg,JPG,nef,NEF}") do |file|
     # jpegファイルの処理
     jpg_file = file
     jpg = EXIFR::JPEG.new(jpg_file)
-    if jpg.exif? == false
-      # EXIFデータがない -> コピーしない
-      warn("#{jpg_file} does not have exif data.")
-    else
+    if jpg.exif? != false
       t = jpg.exif.date_time_original
       shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
       dist_jpg_dir = DIST_PREFIX + "/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
       copy_file(jpg_file, dist_jpg_dir)
+    else
+      # EXIFデータがない -> コピーしない
+      warn("#{jpg_file} does not have exif data.")
     end
   elsif file_ext == ".nef" or file_ext == ".NEF"
     # rawファイルの処理
     raw_file = file
     raw = EXIFR::TIFF.new(raw_file)
     t = raw.date_time_original
-    shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
-    dist_raw_dir = DIST_PREFIX + "/raw/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
-    copy_file(raw_file, dist_raw_dir)
+    if t != nil
+      shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
+      dist_raw_dir = DIST_PREFIX + "/raw/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day] + "/"
+      copy_file(raw_file, dist_raw_dir)
+    else
+      # EXIFデータがない -> コピーしない
+      warn("#{raw_file} does not have exif data.")
+    end
   end
 end
