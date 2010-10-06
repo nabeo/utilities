@@ -2,11 +2,29 @@
 # -*- coding: utf-8 -*-
 
 require "fileutils"
+require "yaml"
 
 require "rubygems"
 require "exifr"
 
-DIST_PREFIX = "/data00/Picts/Photos"
+home_path = File.expand_path("~")
+config = { "dist_dir" => "#{home_path}/Pictures"}
+
+# 設定ファイル(config.yaml)の読み込み
+# 設定ファイルの記述例
+# dist_dir: /path/to/dist_dir
+config_file = "config.yaml"
+if File.exist?(config_file)
+  print("load from : ./#{config_file}\n")
+  config = YAML.load_file(config_file)
+elsif File.exist?("#{home_path}/#{config_file}")
+  print("load from : #{home_path}/.mk_photo_catalog/#{config_file}\n")
+  config = YAML.load_file("#{home_path}/#{config_file}")
+else
+  warn("I can't find #{config_file}.\n")
+end
+
+DIST_PREFIX = config["dist_dir"]
 if Dir.exist?(DIST_PREFIX) == false
   warn("I can't find #{DIST_PREFIX}. Please check `DIST_PREFIX`.")
   exit(false)
@@ -23,11 +41,10 @@ else
 end
 
 def copy_file(orig_file, dist_path)
-  file = File.new(orig_file)
-  orig_file_name = file.basename(orig_file)                        
+  orig_file_name = File.basename(orig_file)                        
   print("#{orig_file_name} ... ")
-  orig_file_ext = file.extname(orig_file_name)
-  orig_file_no_ext = file.basename(orig_file_name, orig_file_ext)
+  orig_file_ext = File.extname(orig_file_name)
+  orig_file_no_ext = File.basename(orig_file_name, orig_file_ext)
 
   # コピー先のディレクトリを作成
   FileUtils.mkdir_p(dist_path)
@@ -58,9 +75,8 @@ def copy_file(orig_file, dist_path)
 end
 
 Dir.glob(target_dir + "/**/*.{jpg,JPG,nef,NEF}") do |file|
-  file = File.new(file)
-  file_name = file.basename(file)
-  file_ext = file.extname(file_name)
+  file_name = File.basename(file)
+  file_ext = File.extname(file_name)
   if file_ext == ".jpg" or file_ext == ".JPG"
     # jpegファイルの処理
     jpg_file = file
