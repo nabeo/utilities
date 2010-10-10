@@ -87,7 +87,7 @@ def my_copy_file(orig_file, dist_path)
   return retval
 end
 
-Dir.glob(target_dir + "/**/*.{jpg,JPG,nef,NEF}") do |file|
+Dir.glob(target_dir + "/**/*.{jpg,JPG,nef,NEF,tif,TIF}") do |file|
   file_name = File.basename(file)
   file_ext = File.extname(file_name)
   if file_ext == ".jpg" or file_ext == ".JPG"
@@ -108,7 +108,7 @@ Dir.glob(target_dir + "/**/*.{jpg,JPG,nef,NEF}") do |file|
       warn("#{jpg_file} does not have exif data.")
       log.info("#{file} -> does not have exif data.")
     end
-  elsif file_ext == ".nef" or file_ext == ".NEF"
+  elsif file_ext == ".nef" or file_ext == ".NEF" or file_ext == ".tif" or file_ext == ".TIF"
     # rawファイルの処理
     raw_file = file
     raw = EXIFR::TIFF.new(raw_file)
