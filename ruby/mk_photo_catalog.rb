@@ -25,9 +25,9 @@ config_file = "config.yaml"
 if File.exist?(config_file)
   print("load from : ./#{config_file}\n")
   config = YAML.load_file(config_file)
-elsif File.exist?("#{home_path}/#{config_file}")
+elsif File.exist?("#{home_path}/.mk_photo_catalog/#{config_file}")
   print("load from : #{home_path}/.mk_photo_catalog/#{config_file}\n")
-  config = YAML.load_file("#{home_path}/#{config_file}")
+  config = YAML.load_file("#{home_path}/.mk_photo_catalog/#{config_file}")
 else
   warn("I can't find #{config_file}.\n")
 end
