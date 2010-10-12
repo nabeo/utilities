@@ -12,8 +12,15 @@ require "exifr"
 home_path = File.expand_path("~")
 config = { "dist_dir" => "#{home_path}/Pictures"}
 
+prog_dir = "#{home_path}/.config/mk_photo_catalog"
+log_dir = prog_dir + "/logs"
+if File.directory?(prog_dir) == false
+  FileUtils.mkdir_p(log_dir)
+  warn("create directory : #{prog_dir}")
+end
+
 FileUtils.mkdir_p("#{home_path}/.mk_photo_catalog")
-log_file = home_path + "/.mk_photo_catalog/log-" + Time.now().strftime("%Y%m%d-%H%M") + ".txt"
+log_file = log_dir + "/log-" + Time.now().strftime("%Y%m%d-%H%M") + ".txt"
 log = Logger.new(log_file)
 log.level = Logger::INFO
 print("log file : #{log_file}\n")
@@ -25,9 +32,9 @@ config_file = "config.yaml"
 if File.exist?(config_file)
   print("load from : ./#{config_file}\n")
   config = YAML.load_file(config_file)
-elsif File.exist?("#{home_path}/.mk_photo_catalog/#{config_file}")
-  print("load from : #{home_path}/.mk_photo_catalog/#{config_file}\n")
-  config = YAML.load_file("#{home_path}/.mk_photo_catalog/#{config_file}")
+elsif File.exist?("#{prog_dir}/#{config_file}")
+  print("load from : #{prog_dir}/#{config_file}\n")
+  config = YAML.load_file("#{prog_dir}/#{config_file}")
 else
   warn("I can't find #{config_file}.\n")
 end
