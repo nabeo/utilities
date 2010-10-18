@@ -9,12 +9,16 @@ require "plist"
 require "id3lib"
 
 src_mp3_dir = "mp3"
-if Dir.exitst?(src_mp3_file)
+if Dir.exitst?(src_mp3_file) == false
   warn("I can't find source mp3 directory. Pleace copy from ~/Music/iTunes/iTunes Music.")
   exit(1)
 end
 
 # You can find ~/Music/iTunes/iTunes Music Library.xml
+if File.exist?("iTunesMusicLibrary.xml") == false
+  warn("I can't find iTunesMusicLibrary.xml. Pleace copy from ~/Music/iTunes/iTunes Music Library.xml.")
+  exit(1)
+end
 plist = Plist::parse_xml("iTunesMusicLibrary.xml")
 
 # Load plist
