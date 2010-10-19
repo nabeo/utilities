@@ -5,6 +5,7 @@ require "fileutils"
 
 require "rubygems"
 require "id3lib"
+require "mimemagic"
 
 target_dir = ARGV.shift
 if target_dir == nil
@@ -26,16 +27,7 @@ Dir.glob(target_dir + "/**/*.{mp3,MP3}") do |mp3_file|
   cover_file = Dir.glob(mp3_file_dir + "/cover.{jpg,JPG,png,PNG}").shift
   if cover_file != nil
     # detect cover_file"s mimetype
-    cover_file_name = File.basename(cover_file)
-    cover_file_ext = File.extname(cover_file)
-    if cover_file_ext == ".jpg" or cover_file_ext == ".JPG"
-      cover_file_mimetype = "image/jpg"
-    elsif cover_file_ext == ".png" or cover_file_ext == ".PNG"
-      cover_file_mimetype = "image/png"
-    else
-      warn("this is not jpeg or png image : #{cover_file}\n")
-      exit(1)
-    end
+    cover_file_mimetype = MimeMagic.by_magic(File.open(cover_file))
     
     mp3_tag = ID3Lib::Tag.new(mp3_file)
     # if mp3_file does not have APIC tag, attach cover_file as APIC
