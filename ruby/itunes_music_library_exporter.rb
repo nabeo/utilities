@@ -179,7 +179,6 @@ tracks_hash.each do |track_hash|
       # update id3v2 tag.
       update_id3v2_tag(renamed_mp3_file, track_info)
       log.info("id3v2 tag update.")
-      log.info("done.")
 
       # search album artwork file from cache directory.
       album_artwork_file = search_album_artwork_file(itunes_album_artwork_cache_dir,
