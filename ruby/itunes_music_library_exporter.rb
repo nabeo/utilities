@@ -8,6 +8,7 @@ require "logger"
 require "rubygems"
 require "plist"
 require "id3lib"
+require "mimemagic"
 
 home_path = File.expand_path("~")
 pwd_path = FileUtils.pwd()
@@ -68,6 +69,53 @@ def update_id3v2_tag(renamed_mp3_file, track_info)
   tag.update!
 end
 
+def search_album_artwork_file(itunes_album_artwork_cache_dir,
+                             library_persistent_id,
+                             track_info)
+  # track's Persistent ID
+  track_persistent_id = track_info["Persistent ID"]
+  
+  # artwork file name
+  album_artwork_file_name = library_persistent_id + "-" + track_persistent_id + ".itc"
+  
+  album_artwork_file = Dir.glob(itunes_album_artwork_cache_dir + "/**/" + album_artwork_file_name).shift
+  
+  return album_artwork_file
+end
+
+def copy_cover_image(copy_dist)
+  # read itc file
+  i = 0
+  ary = []
+  open(copy_dist + "/tmp.img","rb") do |itc_fp|
+    itc_fp.each_byte do |ch|
+      if i > 491                  # image part
+        ary << ch
+      end
+      i += 1
+    end
+  end
+  
+  # write image file
+  open(copy_dist + "/cover.img", "w+b") do |artwork_fp|
+    artwork_fp.write(ary.pack("c*"))
+  end
+  
+  # delete itc file
+  File.delete(copy_dist + "/tmp.img")
+  
+  # detect image file's mime-type, and copy.
+  artwork_file_mimetype = MimeMagic.by_magic(File.open(copy_dist + "/cover.img"))
+  if artwork_file_mimetype == "image/jpg"
+    cover_file = copy_dist + "/cover.jpg"
+  elsif artwork_file_mimetype == "image/png"
+    cover_file = copy_dist + "/cover.png"
+  end
+  FileUtils.mv(copy_dist + "/cover.img", cover_file)
+
+  return cover_file
+end
+
 # program directories and files.
 prog_dir = home_path + "/.config/itunes_music_library_exporter" 
 if Dir.exist?(prog_dir) == false
@@ -97,12 +145,16 @@ if File.exist?(pwd_path + "/iTunesMusicLibrary.xml") == true
   itunes_music_library_file = pwd_path + "/iTunesMusicLibrary.xml"
   log.info("iTunes Music Library.xml : #{itunes_music_library_file}")
 end
+itunes_album_artwork_cache_dir = itunes_dir + "/Album Artwork/Cache"
 
 # Load plist
 plist = Plist::parse_xml(itunes_music_library_file)
 
 # main part
 tracks_hash = plist["Tracks"]
+
+library_persistent_id = plist["Library Persistent ID"]
+log.info("Library Persistent ID : #{library_persistent_id}")
 
 tracks_hash.each do |track_hash|
   track_hash.shift
@@ -128,6 +180,24 @@ tracks_hash.each do |track_hash|
       update_id3v2_tag(renamed_mp3_file, track_info)
       log.info("id3v2 tag update.")
       log.info("done.")
+
+      # search album artwork file from cache directory.
+      album_artwork_file = search_album_artwork_file(itunes_album_artwork_cache_dir,
+                                                     library_persistent_id,
+                                                     track_info)
+      # copy artwork file.
+      if album_artwork_file != nil
+        if track_info["Compilation"] == true
+          copy_dist = copy_dist_dir + "/va/" + track_info["Album"]
+        else
+          copy_dist = copy_dist_dir + "/" + track_info["Artist"] + "/" + track_info["Album"]
+        end
+        FileUtils.mkdir_p(copy_dist)
+        FileUtils.cp(album_artwork_file, copy_dist + "/tmp.img")
+        cover_file = copy_cover_image(copy_dist)
+
+        log.info("copy to : #{cover_file}")
+      end
     end
   end
 end
