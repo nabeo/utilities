@@ -27,12 +27,12 @@ Dir.glob(target_dir + "/**/*.{mp3,MP3}") do |mp3_file|
   cover_file = Dir.glob(mp3_file_dir + "/cover.{jpg,JPG,png,PNG}").shift
   if cover_file != nil
     # detect cover_file"s mimetype
-    cover_file_mimetype = MimeMagic.by_magic(File.open(cover_file))
+    cover_file_mimetype = MimeMagic.by_magic(File.open(cover_file)).to_s
     
     mp3_tag = ID3Lib::Tag.new(mp3_file)
     # if mp3_file does not have APIC tag, attach cover_file as APIC
     if mp3_tag.frame(:APIC) == nil
-      cover = { 
+      mp3_tag << { 
         :id => :APIC,
         :mimetype => cover_file_mimetype,
         :picturetype => 3,
@@ -40,7 +40,6 @@ Dir.glob(target_dir + "/**/*.{mp3,MP3}") do |mp3_file|
         :textenc => 0,
         :data => File.read(cover_file)
       }
-      mp3_tag << cover
       mp3_tag.update!
       print("#{cover_file}\n")
       else
