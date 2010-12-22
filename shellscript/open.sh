@@ -36,7 +36,7 @@ textFileDetect() {
 	if [ $lineNum -lt 15 ]; then
 		exec cat $textFile
 	else
-		exec cat $textFile | lv
+		exec cat $textFile | less -F
 	fi
 }
 
@@ -57,7 +57,7 @@ archiveFileDetect() {
 					tar xjf $archiveFile
 				;;
 				2)
-					tar jvtf $archiveFile | lv 
+					tar jvtf $archiveFile | less -F
 				;;
 				*)
 				;;
@@ -69,7 +69,7 @@ archiveFileDetect() {
 					tar xzf $archiveFile
 				;;
 				2)
-					tar zvtf $archiveFile | lv 
+					tar zvtf $archiveFile | less -F
 				;;
 				*)
 				;;
@@ -108,7 +108,7 @@ case "$fileType" in
 		exec gthumb --display=$DISPLAY --new-window "$1"
 	;;
 	"RPM"*)
-		exec rpm -qpli "$1" | lv
+		exec rpm -qpli "$1" | less -F
 	;;
 	*"compressed"*)
 		archiveFileDetect "$1"
