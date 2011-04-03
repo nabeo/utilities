@@ -24,7 +24,7 @@ Dir.glob(target_dir + "/**/*.{mp3,MP3}") do |mp3_file|
 
   # search cover art picture
   # cover art picture is png or jpg file.
-  cover_file = Dir.glob(mp3_file_dir + "/cover.{jpg,JPG,png,PNG}").shift
+  cover_file = Dir.glob(mp3_file_dir + "/cover.{jpg,JPG,jpeg,JPEG,png,PNG}").shift
   if cover_file != nil
     # detect cover_file"s mimetype
     cover_file_mimetype = MimeMagic.by_magic(File.open(cover_file)).to_s
