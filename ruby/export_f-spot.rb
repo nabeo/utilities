@@ -6,7 +6,6 @@ require 'tmpdir'
 
 # installed by rubygems
 require 'sqlite3'               # sqlite3-ruby
-require 'RMagick'               # rmagick
 
 # 変数関係の初期化
 # target tag_id
@@ -24,6 +23,7 @@ tagsArray = []
 outputDir = ""
 startUnixtime = 0
 endUnixtime = DateTime.strptime(DateTime.now.to_s).strftime("%s").to_i
+dryRunFlag = FLASE
 
 # 引数の処理
 OptionParser.new do |opts|
@@ -46,11 +46,6 @@ OptionParser.new do |opts|
   opts.on("-o", "--output dir",
           "path to output directory") do |d|
     outputDir = d
-    if Dir.exists?(outputDir) != true
-      puts "[WARN] can\'t find output directory : #{outputDir}"
-      puts "[INFO] mkdir : #{outputDir}"
-      FileUtils.mkdir_p(outputDir)
-    end
   end
 
   # 抽出する写真のtagを指定する (カンマ区切り)
@@ -70,17 +65,36 @@ OptionParser.new do |opts|
           "end day (YYYYMMDD)") do |s|
     endUnixtime = DateTime.strptime(DateTime.strptime(s,"%Y%m%d").to_s).strftime("%s").to_i
   end
+
+  # 実際に処理は行わない (dry-run)
+  opts.on("-d", "--dry-run") do
+    dryRunFlag = TRUE
+  end
   opts.parse!(ARGV)
 end # end of OptionParser
-if outputDir == ""
+
+if outputDir == "" && dryRunFlag == FALSE
   outputDir = Dir.mktmpdir("import_photo","/tmp")
 end
+if Dir.exists?(outputDir) != TRUE
+  puts "[WARN] can\'t find output directory : #{outputDir}"
+  if dryRunFlag == FALSE
+    puts "[INFO] mkdir : #{outputDir}"
+    FileUtils.mkdir_p(outputDir)
+  end
+end
+
 # 起動情報の出力
 puts "[INFO] f-spot\'s photos.db : #{fspotDB}"
 puts "[INFO] output directory : #{outputDir}"
 startDay = DateTime.strptime(startUnixtime.to_s, "%s").strftime("%Y/%m/%d")
 endDay = DateTime.strptime(endUnixtime.to_s, "%s").strftime("%Y/%m/%d")
 puts "[INFO] export scope : #{startDay} - #{endDay}"
+if dryRunFlag == FALSE
+  require 'RMagick'               # rmagick
+else
+  puts "[INFO] dry run mode"
+end
 
 db = SQLite3::Database.new(fspotDB)
 
@@ -125,9 +139,12 @@ photoIds.each do |photo_id|
     photos << tmp
   end
 end
-
+puts "[INFO] target photo data : #{photos.length}"
 # f-spotのDBを使うのはここまで
 db.close
+if dryRunFlag == TRUE
+  exit
+end
 
 # 写真データのコピー
 photos.each do |photo|
