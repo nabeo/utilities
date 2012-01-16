@@ -23,7 +23,7 @@ tagsArray = []
 outputDir = ""
 startUnixtime = 0
 endUnixtime = DateTime.strptime(DateTime.now.to_s).strftime("%s").to_i
-dryRunFlag = FLASE
+dryRunFlag = FALSE
 
 # 引数の処理
 OptionParser.new do |opts|
