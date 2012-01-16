@@ -85,16 +85,16 @@ if Dir.exists?(outputDir) != TRUE
 end
 
 # 起動情報の出力
+if dryRunFlag == FALSE
+  require 'RMagick'               # rmagick
+else
+  puts "[INFO] switch dry run mode"
+end
 puts "[INFO] f-spot\'s photos.db : #{fspotDB}"
 puts "[INFO] output directory : #{outputDir}"
 startDay = DateTime.strptime(startUnixtime.to_s, "%s").strftime("%Y/%m/%d")
 endDay = DateTime.strptime(endUnixtime.to_s, "%s").strftime("%Y/%m/%d")
 puts "[INFO] export scope : #{startDay} - #{endDay}"
-if dryRunFlag == FALSE
-  require 'RMagick'               # rmagick
-else
-  puts "[INFO] dry run mode"
-end
 
 db = SQLite3::Database.new(fspotDB)
 
@@ -148,12 +148,14 @@ end
 
 # 写真データのコピー
 photos.each do |photo|
-  tmpInputPath = photo[:path] + "/" + photo[:filename]
-  tmpImgObj = Magick::Image.read(tmpInputPath).first
-  tmpImgObj.resize_to_fit!(2048,2048)
-  tmpDateHash = DateTime._strptime(photo[:time].to_s)
   # format YYYY_MM_DD_orig-filename
+  tmpDateHash = DateTime._strptime(photo[:time].to_s)
   tmpOutputFilename = tmpDateHash[:year].to_s + "_" + tmpDateHash[:mon].to_s + "_" + tmpDateHash[:mday].to_s + "_" + photo[:filename].downcase
   tmpOutputPath = outputDir + "/" + tmpOutputFilename
-  tmpImgObj.write(tmpOutputPath)
+  if File.exist?(tmpOutputPath) == FALSE
+    tmpInputPath = photo[:path] + "/" + photo[:filename]
+    tmpImgObj = Magick::Image.read(tmpInputPath).first
+    tmpImgObj.resize_to_fit!(2048,2048)
+    tmpImgObj.write(tmpOutputPath)
+  end
 end
