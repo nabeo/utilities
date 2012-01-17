@@ -20,6 +20,7 @@ photos = []
 # プログラム引数からわたされる変数の初期化
 fspotDB = ENV["HOME"] + "/.config/f-spot/photos.db"
 tagsArray = []
+ignoreTagsArray = []
 outputDir = ""
 startUnixtime = 0
 endUnixtime = DateTime.strptime(DateTime.now.to_s).strftime("%s").to_i
@@ -48,12 +49,17 @@ OptionParser.new do |opts|
     outputDir = d
   end
 
-  # 抽出する写真のtagを指定する (カンマ区切り)
+  # 抽出する写真のtagを指定する (コンマ区切り)
   opts.on("-t", "--tags tag_names",
-          "export target tag names") do |s|
+          "export target tag names with comma separated") do |s|
     tagsArray = s.split(",")
   end
 
+  # 抽出しない写真のtagを指定する (コンマ区切り)
+  opts.on("-T", "--ignore-tags tag_names",
+          "ignore tag names with comma separated") do |s|
+    ignoreTagsArray = s.split(",")
+  end
   # 抽出する写真の範囲 (開始日)
   opts.on("-s", "--start day",
           "start day (YYYYMMDD)") do |s|
@@ -73,6 +79,7 @@ OptionParser.new do |opts|
   opts.parse!(ARGV)
 end # end of OptionParser
 
+# 出力先の処理
 if outputDir == "" && dryRunFlag == FALSE
   outputDir = Dir.mktmpdir("import_photo","/tmp")
 end
@@ -106,6 +113,7 @@ if tagsArray.length == 0
 else
   tmpStr = ""
   sqlStr = "SELECT `id` FROM tags WHERE ( "
+  # 抽出対象のタグ
   tagsArray.each do |i|
     tmpTagName = tmpTagName + "#{i}, "
     tmpStr = tmpStr + "`name` = '#{i}' or "
@@ -113,6 +121,16 @@ else
   # ゴミ掃除
   tmpTagName = tmpTagName.gsub(/, $/,"")
   sqlStr = sqlStr +  tmpStr.gsub(/or $/,"") + ")"
+  # 抽出対象外のタグ
+  if ignoreTagsArray.length > 0
+    sqlStr = sqlStr + " and "
+    tmpStr = ""
+    ignoreTagsArray.each do |i|
+      tmpStr = tmpStr + "`name` != '#{i}' and "
+    end
+    sqlStr = sqlStr + tmpStr.gsub(/and $/,"")
+  end
+  sqlStr = sqlStr + ")"
 end
 db.execute(sqlStr).each do |i|
   tagIds << i[0]
