@@ -120,7 +120,7 @@ else
   end
   # ゴミ掃除
   tmpTagName = tmpTagName.gsub(/, $/,"")
-  sqlStr = sqlStr +  tmpStr.gsub(/or $/,"") + ")"
+  sqlStr = sqlStr +  tmpStr.gsub(/or $/,"")
   # 抽出対象外のタグ
   if ignoreTagsArray.length > 0
     sqlStr = sqlStr + " and "
