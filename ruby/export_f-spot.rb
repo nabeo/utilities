@@ -20,7 +20,6 @@ photos = []
 # プログラム引数からわたされる変数の初期化
 fspotDB = ENV["HOME"] + "/.config/f-spot/photos.db"
 tagsArray = []
-ignoreTagsArray = []
 outputDir = ""
 startUnixtime = 0
 endUnixtime = DateTime.strptime(DateTime.now.to_s).strftime("%s").to_i
@@ -55,11 +54,6 @@ OptionParser.new do |opts|
     tagsArray = s.split(",")
   end
 
-  # 抽出しない写真のtagを指定する (コンマ区切り)
-  opts.on("-T", "--ignore-tags tag_names",
-          "ignore tag names with comma separated") do |s|
-    ignoreTagsArray = s.split(",")
-  end
   # 抽出する写真の範囲 (開始日)
   opts.on("-s", "--start day",
           "start day (YYYYMMDD)") do |s|
@@ -120,17 +114,7 @@ else
   end
   # ゴミ掃除
   tmpTagName = tmpTagName.gsub(/, $/,"")
-  sqlStr = sqlStr +  tmpStr.gsub(/or $/,"")
-  # 抽出対象外のタグ
-  if ignoreTagsArray.length > 0
-    sqlStr = sqlStr + " and "
-    tmpStr = ""
-    ignoreTagsArray.each do |i|
-      tmpStr = tmpStr + "`name` != '#{i}' and "
-    end
-    sqlStr = sqlStr + tmpStr.gsub(/and $/,"")
-  end
-  sqlStr = sqlStr + ")"
+  sqlStr = sqlStr +  tmpStr.gsub(/or $/,"") + ")"
 end
 db.execute(sqlStr).each do |i|
   tagIds << i[0]
