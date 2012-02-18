@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby192
+#!/usr/bin/env ruby193
 # -*- coding: utf-8 -*-
 require "fileutils"
 require "uri"
