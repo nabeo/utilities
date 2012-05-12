@@ -100,20 +100,26 @@ Dir.glob(target_dir + "/**/*.{jpg,JPG,nef,NEF,tif,TIF}") do |file|
   if file_ext == ".jpg" or file_ext == ".JPG"
     # jpegファイルの処理
     jpg_file = file
-    jpg = EXIFR::JPEG.new(jpg_file)
-    if jpg.exif? != false
-      t = jpg.exif.date_time_original
-      shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
-      dist_jpg_dir = DIST_PREFIX + "/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day]
-      copy_result = my_copy_file(jpg_file, dist_jpg_dir)
-      if copy_result == false
-        copy_result = "nothing to do."
+    begin
+      jpg = EXIFR::JPEG.new(jpg_file)
+      if jpg.exif? != false
+        t = jpg.exif.date_time_original
+        shoot_time = {:year => t.strftime("%Y"), :month => t.strftime("%m"), :day => t.strftime("%d")}
+        dist_jpg_dir = DIST_PREFIX + "/" + shoot_time[:year] + "/" + shoot_time[:month] + "/" + shoot_time[:day]
+        copy_result = my_copy_file(jpg_file, dist_jpg_dir)
+        if copy_result == false
+          copy_result = "nothing to do."
+        end
+        log.info("#{jpg_file} -> #{copy_result}")
+      else
+        # EXIFデータがない -> コピーしない
+        warn("#{jpg_file} does not have exif data.")
+        log.info("#{file} -> does not have exif data.")
       end
-      log.info("#{jpg_file} -> #{copy_result}")
-    else
-      # EXIFデータがない -> コピーしない
-      warn("#{jpg_file} does not have exif data.")
-      log.info("#{file} -> does not have exif data.")
+    rescue EXIFR::MalformedJPEG
+      # exifrの例外処理
+      warn("#{jpg_file} is broken file.")
+      log.info("#{file} -> is broken file.")
     end
   elsif file_ext == ".nef" or file_ext == ".NEF" or file_ext == ".tif" or file_ext == ".TIF"
     # rawファイルの処理
