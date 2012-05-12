@@ -66,7 +66,12 @@ def my_copy_file(orig_file, dist_path)
 
   if File.exist?(dist_path + "/" + orig_file_name) == false
     # 何も考えずにコピーできる
-    FileUtils.copy_file(orig_file, dist_path + "/" + orig_file_name)
+    begin
+      FileUtils.copy_file(orig_file, dist_path + "/" + orig_file_name)
+    rescue Errno::EIO
+      print ("can't copy.\n")
+      return FALSE
+    end
     print("copy.\n")
     retval = dist_path + "/" + orig_file_name
   else
@@ -83,7 +88,12 @@ def my_copy_file(orig_file, dist_path)
 
     # 同名で異なるファイルがあればコピーする
     if copy_flag == false
-      FileUtils.copy_file(orig_file, dist_path + "/" + dist_path_file_name, true)
+      begin 
+        FileUtils.copy_file(orig_file, dist_path + "/" + dist_path_file_name, true)
+      rescue Errno::EIO
+        print ("can't copy.\n")
+        return FALSE
+      end
       print("copy.\n")
       retval = dist_path + "/" + dist_path_file_name
     else
