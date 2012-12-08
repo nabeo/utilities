@@ -56,7 +56,7 @@ else
 end
 
 def my_copy_file(orig_file, dist_path)
-  orig_file_name = File.basename(orig_file)                        
+  orig_file_name = File.basename(orig_file)
   print("#{orig_file_name} ... ")
   orig_file_ext = File.extname(orig_file_name)
   orig_file_no_ext = File.basename(orig_file_name, orig_file_ext)
@@ -88,7 +88,7 @@ def my_copy_file(orig_file, dist_path)
 
     # 同名で異なるファイルがあればコピーする
     if copy_flag == false
-      begin 
+      begin
         FileUtils.copy_file(orig_file, dist_path + "/" + dist_path_file_name, true)
       rescue Errno::EIO
         print ("can't copy.\n")
