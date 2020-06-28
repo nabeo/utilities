@@ -6,8 +6,7 @@ require "yaml"
 require "time"
 require "logger"
 
-require "rubygems"
-require "exifr"
+require "exifr/jpeg"
 
 home_path = File.expand_path("~")
 config = { "dist_dir" => "#{home_path}/Pictures"}
